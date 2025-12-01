@@ -1,4 +1,30 @@
-# FlashMLA
+# FlashMLA ❤️ PaddlePaddle
+
+> [!NOTE]
+>
+> This repo is a fork of the original FlashMLA project, with modifications to enhance compatibility and integration with PaddlePaddle.
+>
+> **Installation**
+>
+> ```bash
+> git clone https://github.com/PFCCLab/FlashMLA.git
+> cd FlashMLA
+> git submodule update --init --recursive
+> pip install -v .
+> ```
+>
+> **Usage**
+>
+> ```python
+> import paddle
+> paddle.compat.enable_torch_proxy(scope={"flash_mla"})  # Enable torch proxy before importing flash_mla
+> import flash_mla
+> # use flash_mla
+> ```
+
+The original README.md content is as follows:
+
+---
 
 ## Introduction
 
@@ -220,31 +246,6 @@ The corresponding FlashMLA version is available on GitHub: [Deep-Spark/FlashMLA]
 For AMD Instinct GPUs, visit the official website: [AMD Instinct](https://www.amd.com/en/products/accelerators/instinct.html).
 
 The corresponding FlashMLA version can be found at: [AITER/MLA](https://github.com/ROCm/aiter/blob/main/aiter/mla.py)
-
-### PaddlePaddle Compatible API
-
-PaddlePaddle provides a PyTorch-compatible API layer that allows PyTorch ecosystem libraries to run seamlessly on Paddle. With this compatibility layer, you can use FlashMLA in PaddlePaddle projects with minimal code changes.
-
-**Installation:**
-
-```bash
-PADDLE_COMPATIBLE_API=1 pip install -v .
-```
-
-**Usage Example:**
-
-```python
-import paddle
-
-# Enable PyTorch compatibility mode
-paddle.compat.enable_torch_proxy()
-
-# Now you can use FlashMLA as if you were using PyTorch
-import flashmla
-
-# Use FlashMLA operations with PaddlePaddle tensors
-# The compatibility layer handles the framework differences automatically
-```
 
 ## Citation
 

@@ -5,10 +5,9 @@ import subprocess
 
 from setuptools import setup, find_packages
 
-if os.environ.get("PADDLE_COMPATIBLE_API", "0").lower() in ["1", "on", "true"]:
-    import paddle
+import paddle
 
-    paddle.compat.enable_torch_proxy()
+paddle.compat.enable_torch_proxy()
 
 from torch.utils.cpp_extension import (
     BuildExtension,
