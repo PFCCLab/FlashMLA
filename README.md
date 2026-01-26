@@ -10,14 +10,14 @@
 > git clone https://github.com/PFCCLab/FlashMLA.git
 > cd FlashMLA
 > git submodule update --init --recursive
-> pip install -v .
+> pip install -v . --no-build-isolation
 > ```
 >
 > **Usage**
 >
 > ```python
 > import paddle
-> paddle.compat.enable_torch_proxy(scope={"flash_mla"})  # Enable torch proxy before importing flash_mla
+> paddle.enable_compat(scope={"flash_mla"})  # Enable torch proxy before importing flash_mla
 > import flash_mla
 > # use flash_mla
 > ```
