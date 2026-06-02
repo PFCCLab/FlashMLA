@@ -5,6 +5,10 @@ import subprocess
 
 from setuptools import setup, find_packages
 
+import paddle
+
+paddle.enable_compat()
+
 from torch.utils.cpp_extension import (
     BuildExtension,
     CUDAExtension,
