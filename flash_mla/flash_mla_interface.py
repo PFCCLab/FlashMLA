@@ -66,7 +66,8 @@ def flash_mla_with_kvcache(
     extra_k_cache: Optional[torch.Tensor] = None,
     extra_indices_in_kvcache: Optional[torch.Tensor] = None,
     topk_length: Optional[torch.Tensor] = None,
-    extra_topk_length: Optional[torch.Tensor] = None
+    extra_topk_length: Optional[torch.Tensor] = None,
+    swa_size: int = -1
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """
     Arguments:
@@ -166,7 +167,8 @@ def flash_mla_with_kvcache(
             q, k_cache, head_dim_v,
             cache_seqlens, block_table,
             softmax_scale, causal,
-            sched_meta.tile_scheduler_metadata, sched_meta.num_splits
+            sched_meta.tile_scheduler_metadata, sched_meta.num_splits,
+            swa_size
         )
     sched_meta.tile_scheduler_metadata = new_tile_scheduler_metadata
     sched_meta.num_splits = new_num_splits

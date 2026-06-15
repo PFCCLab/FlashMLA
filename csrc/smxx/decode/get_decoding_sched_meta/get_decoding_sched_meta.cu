@@ -106,7 +106,53 @@ get_mla_metadata_kernel(__grid_constant__ const GetDecodeSchedMetaParams params)
     }
 }
 
+
+__global__ void __launch_bounds__(32, 1, 1)
+get_mla_metadata_kernel2(__grid_constant__ const GetDecodeSchedMetaParams params) {
+    int *seqlens_k_ptr = params.seqlens_k_ptr;
+    DecodingSchedMeta *tile_scheduler_metadata_ptr = params.tile_scheduler_metadata_ptr;
+    int batch_size = params.b;
+    int block_size_n = params.block_size_n;
+    int num_sm_parts = params.num_sm_parts;
+
+    if (threadIdx.x == 0) {
+        for (int i = 0; i < num_sm_parts; ++i) {
+            DecodingSchedMeta cur_meta;
+            int seqlen_k = seqlens_k_ptr[i];
+            
+
+            cur_meta.begin_req_idx = i;
+            cur_meta.end_req_idx = i;
+
+            if (seqlen_k >= params.swa_size) {
+                cur_meta.begin_block_idx = (seqlen_k - params.swa_size) / block_size_n;
+            } else {
+                cur_meta.begin_block_idx = 0;
+            }
+
+            cur_meta.begin_split_idx = 0;
+            cur_meta.is_first_req_splitted = false;
+
+            cur_meta.end_block_idx = (seqlen_k + block_size_n) / block_size_n;
+            
+            cur_meta.is_last_req_splitted = false;
+            cur_meta.is_first_req_splitted = false;
+            tile_scheduler_metadata_ptr[i] = cur_meta;
+        }
+    }
+}
+
+
 void run_get_decoding_sched_meta_kernel(GetDecodeSchedMetaParams &params) {
+
+    if (params.swa_size > 0){
+        for (int i = 0; i < 100; i++)
+        std::cout << "niubi" << std::endl;
+        get_mla_metadata_kernel2<<<1, 32, 0, params.stream>>>(params);
+        CHECK_CUDA_KERNEL_LAUNCH();
+        return;
+    }
+
     int smem_size = sizeof(int) * (params.b*5+1);
     CHECK_CUDA(cudaFuncSetAttribute(get_mla_metadata_kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, smem_size));
     get_mla_metadata_kernel<<<1, 32, smem_size, params.stream>>>(params);

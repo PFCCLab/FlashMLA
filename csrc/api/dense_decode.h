@@ -20,7 +20,8 @@ dense_attn_decode_interface(
     const float softmax_scale,
     bool is_causal,
     std::optional<at::Tensor> &tile_scheduler_metadata,   // num_sm_parts x (DecodingSchedMetaSize/4)
-    std::optional<at::Tensor> &num_splits                 // batch_size + 1
+    std::optional<at::Tensor> &num_splits,                 // batch_size + 1
+    const int swa_size
 ) {
     // Check arch
     Arch arch = Arch();
@@ -77,6 +78,12 @@ dense_attn_decode_interface(
         .reshape({batch_size, q_seq_per_hk, num_heads, head_size_k});
     int num_sm_parts = std::max(arch.num_sms / num_heads_k / cutlass::ceil_div(seqlen_q_ori*num_heads_q/num_heads_k, 64), 1);
 
+
+    if (swa_size > 0 ) {
+        std::cout << "batch_size" << std::endl;
+        num_sm_parts = batch_size;
+    }
+
     KU_CHECK_SHAPE(q, batch_size, q_seq_per_hk, num_heads, head_size_k);
     KU_CHECK_SHAPE(kcache, num_blocks, page_block_size, num_heads_k, head_size_k);
     KU_CHECK_SHAPE(seqlens_k, batch_size);
@@ -108,7 +115,8 @@ dense_attn_decode_interface(
             (DecodingSchedMeta*)tile_scheduler_metadata->data_ptr(),
             num_splits->data_ptr<int>(),
             num_sm_parts,
-            at::cuda::getCurrentCUDAStream().stream()
+            at::cuda::getCurrentCUDAStream().stream(),
+            swa_size,
         };
         smxx::decode::run_get_decoding_sched_meta_kernel(get_sched_meta_params);
     } else {
@@ -206,6 +214,8 @@ dense_attn_decode_interface(
         at::cuda::getCurrentCUDAStream().stream()
     };
 
+    if (swa_size < 0){
+
     if (q_dtype == torch::kBFloat16) {
         smxx::decode::run_flash_mla_combine_kernel<cutlass::bfloat16_t>(combine_params);
     } else if (q_dtype == torch::kHalf) {
@@ -215,6 +225,7 @@ dense_attn_decode_interface(
     } else {
         TORCH_CHECK(false, "Unsupported tensor dtype for query");
     }
+}
 
     out = out.view({batch_size, num_heads_k, seqlen_q_ori, num_q_heads_per_hk, head_size_v}).transpose(1, 2)
             .reshape({batch_size, seqlen_q_ori, num_heads_q, head_size_v});
