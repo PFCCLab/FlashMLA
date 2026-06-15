@@ -80,7 +80,6 @@ dense_attn_decode_interface(
 
 
     if (swa_size > 0 ) {
-        std::cout << "batch_size" << std::endl;
         num_sm_parts = batch_size;
     }
 
