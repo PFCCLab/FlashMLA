@@ -146,8 +146,6 @@ get_mla_metadata_kernel2(__grid_constant__ const GetDecodeSchedMetaParams params
 void run_get_decoding_sched_meta_kernel(GetDecodeSchedMetaParams &params) {
 
     if (params.swa_size > 0){
-        for (int i = 0; i < 100; i++)
-        std::cout << "niubi" << std::endl;
         get_mla_metadata_kernel2<<<1, 32, 0, params.stream>>>(params);
         CHECK_CUDA_KERNEL_LAUNCH();
         return;
