@@ -140,6 +140,7 @@ struct GetDecodeSchedMetaParams {
     int num_sm_parts;
 
     cudaStream_t stream;
+    int swa_size;
 };
 
 struct SparseAttnFwdParams {
