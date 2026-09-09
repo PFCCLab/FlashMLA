@@ -279,6 +279,15 @@ sparse_attn_fwd_kernel(__grid_constant__ const SparseAttnFwdParams params, __gri
 
         // Store lse_indexer (LSE over the indexer portion only)
         if constexpr (INDEXER_TOPK > 0) {
+            // NOTE This barrier is required. rowwise_li_buf is reused here, and
+            // the barrier below only orders this write against this read.
+            // Without it a warp that runs ahead overwrites rowwise_li_buf[i]
+            // before thread i^64 has read it for the `li` exchange above, so the
+            // victim's output_scale is 1/(li_own + li_indexer_partner) instead
+            // of 1/(li_own + li_partner) -- wrong by the partner's share of the
+            // non-indexer (forced window) columns, on the victim's own half of
+            // d_v only.
+            NamedBarrier::arrive_and_wait(128, NamedBarriers::wg0_sync);
             plan.rowwise_li_buf[idx_in_warpgroup] = li_indexer;
             NamedBarrier::arrive_and_wait(128, NamedBarriers::wg0_sync);
             li_indexer += plan.rowwise_li_buf[idx_in_warpgroup^64];
